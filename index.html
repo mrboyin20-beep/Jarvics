@@ -67,31 +67,44 @@
             }
         }
 
-        async function askGemini(prompt) {
+async function askGemini(prompt) {
     statusText.innerText = "Thinking...";
+    // Humne yahan 'v1' version aur model ka sahi path dala hai
+    const url = `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${API_KEY}`;
+    
     try {
-        const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
+        const resp = await fetch(url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+            body: JSON.stringify({
+                contents: [{
+                    parts: [{ text: prompt }]
+                }]
+            })
         });
         
         const data = await resp.json();
         
-        // Agar API error de rahi hai toh alert aayega
-        if(data.error) {
-            alert("API Error: " + data.error.message);
+        if (data.error) {
+            alert("Jarvis API Error: " + data.error.message);
+            statusText.innerText = "API Error";
             return;
         }
 
-        const reply = data.candidates[0].content.parts[0].text;
-        statusText.innerText = "Jarvis: " + reply;
-        speak(reply);
+        if (data.candidates && data.candidates[0].content) {
+            const reply = data.candidates[0].content.parts[0].text;
+            statusText.innerText = "Jarvis: " + reply;
+            speak(reply);
+        } else {
+            statusText.innerText = "Jarvis: Model busy or no reply.";
+        }
+
     } catch (e) {
         alert("Connection Error: " + e.message);
-        statusText.innerText = "Error connecting...";
+        statusText.innerText = "Check Connection";
     }
 }
+
 
 
         function speak(text) {
